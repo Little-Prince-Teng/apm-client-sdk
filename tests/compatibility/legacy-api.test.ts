@@ -33,7 +33,7 @@ describe('Legacy API Compatibility', () => {
       traceSDKInternal: false,
       detailMode: true,
       noTraceOrigins: [],
-      traceTimeInterval: 60000
+      traceTimeInterval: 60000,
     };
 
     ClientMonitor.register(mockConfig);
@@ -49,7 +49,7 @@ describe('Legacy API Compatibility', () => {
       service: 'test-service',
       serviceVersion: '1.0.0',
       pagePath: '/test',
-      useFmp: true
+      useFmp: true,
     };
 
     ClientMonitor.setPerformance(mockConfig);
@@ -60,7 +60,7 @@ describe('Legacy API Compatibility', () => {
   it('should support setCustomTags method', () => {
     const tags = [
       { key: 'env', value: 'production' },
-      { key: 'version', value: '1.0.0' }
+      { key: 'version', value: '1.0.0' },
     ];
 
     ClientMonitor.setCustomTags(tags);
@@ -91,7 +91,7 @@ describe('Legacy API Compatibility', () => {
       traceSDKInternal: 'no' as any,
       detailMode: 'true' as any,
       noTraceOrigins: 'not-array' as any,
-      traceTimeInterval: '60000' as any
+      traceTimeInterval: '60000' as any,
     };
 
     ClientMonitor.validateOptions();

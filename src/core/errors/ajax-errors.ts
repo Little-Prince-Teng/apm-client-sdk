@@ -1,157 +1,110 @@
-import { APMClient } from './monitor';
-import {
-  APMOptions,
-  ErrorTrackingOptions,
-  PerformanceTrackingOptions,
-  TraceTrackingOptions,
-  TagOption,
-  VueInstance,
-} from './types';
+import { ErrorTrackingOptions, ErrorInfo } from '../types';
+import { generateUUID } from '../../utils/uuid';
+import { ReportService } from '../services/report';
 
-export interface LegacyOptions
-  extends APMOptions, ErrorTrackingOptions, PerformanceTrackingOptions, TraceTrackingOptions {
-  vue?: VueInstance;
+interface ExtendedXMLHttpRequest extends XMLHttpRequest {
+  _apmMethod?: string;
+  _apmUrl?: string;
+  _apmStartTime?: number;
 }
 
-export function createLegacyClient() {
-  const client = new APMClient();
+export class AjaxErrors {
+  private options: ErrorTrackingOptions;
+  private reportService: ReportService;
+  private enabled: boolean = false;
+  private originalXHROpen: typeof XMLHttpRequest.prototype.open | null = null;
+  private originalXHRSend: typeof XMLHttpRequest.prototype.send | null = null;
 
-  const legacyClient = {
-    customOptions: {} as LegacyOptions,
+  constructor(options: ErrorTrackingOptions) {
+    this.options = options;
+    this.reportService = new ReportService();
+  }
 
-    register(configs: LegacyOptions): void {
-      this.customOptions = { ...this.customOptions, ...configs };
-      client.init(configs);
-    },
+  enable(): void {
+    if (this.enabled) return;
 
-    setPerformance(configs: PerformanceTrackingOptions): void {
-      this.customOptions = { ...this.customOptions, ...configs, useFmp: false };
-      client.updateConfig(this.customOptions);
-      client.trackPerformance(this.customOptions);
-    },
+    this.interceptXHR();
+    this.enabled = true;
+  }
 
-    catchErrors(options: ErrorTrackingOptions): void {
-      const { service, pagePath, serviceVersion, collector } = options;
-      const errorOptions: ErrorTrackingOptions = {
-        ...options,
-        service: service || this.customOptions.service,
-        pagePath: pagePath || this.customOptions.pagePath,
-        serviceVersion: serviceVersion || this.customOptions.serviceVersion,
-        collector: collector || this.customOptions.collector,
-      };
-      client.init(errorOptions);
-    },
+  disable(): void {
+    if (!this.enabled) return;
 
-    reportFrameErrors(configs: APMOptions, error: Error): void {
-      client.captureError(error, {
-        service: configs.service,
-        pagePath: configs.pagePath,
-        serviceVersion: configs.serviceVersion,
-        collector: configs.collector,
+    this.restoreXHR();
+    this.enabled = false;
+  }
+
+  private interceptXHR(): void {
+    const self = this;
+
+    this.originalXHROpen = XMLHttpRequest.prototype.open;
+    this.originalXHRSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.open = function(
+      method: string,
+      url: string | URL,
+      async?: boolean,
+      username?: string | null,
+      password?: string | null
+    ) {
+      const xhr = this as ExtendedXMLHttpRequest;
+      xhr._apmMethod = method;
+      xhr._apmUrl = url.toString();
+      xhr._apmStartTime = Date.now();
+      return self.originalXHROpen!.call(this, method, url, async ?? false, username, password);
+    };
+
+    XMLHttpRequest.prototype.send = function(body?: XMLHttpRequestBodyInit | Document | null) {
+      const xhr = this as ExtendedXMLHttpRequest;
+
+      xhr.addEventListener('error', function() {
+        const errorInfo: ErrorInfo = {
+          uniqueId: generateUUID(),
+          service: self.options.service,
+          serviceVersion: self.options.serviceVersion,
+          pagePath: self.options.pagePath,
+          category: 'AJAX_ERROR',
+          grade: 'ERROR',
+          errorUrl: xhr._apmUrl || window.location.href,
+          message: `AJAX request failed: ${xhr._apmMethod} ${xhr._apmUrl}`,
+          collector: self.options.collector,
+          stack: undefined,
+        };
+
+        self.reportService.sendError(errorInfo);
       });
-    },
 
-    setCustomTags(tags: TagOption[]): void {
-      if (this.validateTags(tags)) {
-        this.customOptions.customTags = tags;
-        client.setCustomTags(tags);
-      }
-    },
+      xhr.addEventListener('timeout', function() {
+        const errorInfo: ErrorInfo = {
+          uniqueId: generateUUID(),
+          service: self.options.service,
+          serviceVersion: self.options.serviceVersion,
+          pagePath: self.options.pagePath,
+          category: 'AJAX_ERROR',
+          grade: 'ERROR',
+          errorUrl: xhr._apmUrl || window.location.href,
+          message: `AJAX request timeout: ${xhr._apmMethod} ${xhr._apmUrl}`,
+          collector: self.options.collector,
+          stack: undefined,
+        };
 
-    validateTags(customTags?: TagOption[]): boolean {
-      if (!customTags) {
-        return false;
-      }
-      if (!Array.isArray(customTags)) {
-        this.customOptions.customTags = undefined;
-        console.warn('customTags error');
-        return false;
-      }
-      let isValid = true;
-      for (const tag of customTags) {
-        if (!(tag && tag.key && tag.value)) {
-          isValid = false;
-        }
-      }
-      if (!isValid) {
-        this.customOptions.customTags = undefined;
-        console.warn('customTags error');
-      }
-      return isValid;
-    },
+        self.reportService.sendError(errorInfo);
+      });
 
-    validateOptions(): void {
-      const {
-        collector,
-        service,
-        pagePath,
-        serviceVersion,
-        jsErrors,
-        apiErrors,
-        resourceErrors,
-        autoTracePerf,
-        useFmp,
-        enableSPA,
-        traceSDKInternal,
-        detailMode,
-        noTraceOrigins,
-        traceTimeInterval,
-        vue,
-      } = this.customOptions;
+      return self.originalXHRSend!.call(this, body);
+    };
+  }
 
-      this.validateTags(this.customOptions.customTags);
+  private restoreXHR(): void {
+    if (this.originalXHROpen) {
+      XMLHttpRequest.prototype.open = this.originalXHROpen;
+    }
+    if (this.originalXHRSend) {
+      XMLHttpRequest.prototype.send = this.originalXHRSend;
+    }
+  }
 
-      if (typeof collector !== 'string') {
-        this.customOptions.collector = typeof window !== 'undefined' ? window.location.origin : '';
-      }
-      if (typeof service !== 'string') {
-        this.customOptions.service = '';
-      }
-      if (typeof pagePath !== 'string') {
-        this.customOptions.pagePath = typeof window !== 'undefined' ? window.location.pathname : '';
-      }
-      if (typeof serviceVersion !== 'string') {
-        this.customOptions.serviceVersion = '';
-      }
-      if (typeof jsErrors !== 'boolean') {
-        this.customOptions.jsErrors = true;
-      }
-      if (typeof apiErrors !== 'boolean') {
-        this.customOptions.apiErrors = true;
-      }
-      if (typeof resourceErrors !== 'boolean') {
-        this.customOptions.resourceErrors = true;
-      }
-      if (typeof autoTracePerf !== 'boolean') {
-        this.customOptions.autoTracePerf = true;
-      }
-      if (typeof useFmp !== 'boolean') {
-        this.customOptions.useFmp = false;
-      }
-      if (typeof enableSPA !== 'boolean') {
-        this.customOptions.enableSPA = false;
-      }
-      if (typeof traceSDKInternal !== 'boolean') {
-        this.customOptions.traceSDKInternal = false;
-      }
-      if (typeof detailMode !== 'boolean') {
-        this.customOptions.detailMode = true;
-      }
-      if (!Array.isArray(noTraceOrigins)) {
-        this.customOptions.noTraceOrigins = [];
-      }
-      if (typeof traceTimeInterval !== 'number') {
-        this.customOptions.traceTimeInterval = 60000;
-      }
-      if (typeof vue !== 'function') {
-        this.customOptions.vue = undefined;
-      }
-    },
-
-    performance(configs: PerformanceTrackingOptions): void {
-      client.trackPerformance(configs);
-    },
-  };
-
-  return legacyClient;
+  updateConfig(options: ErrorTrackingOptions): void {
+    this.options = { ...this.options, ...options };
+  }
 }

@@ -8,7 +8,7 @@ function generateUUID() {
     return v.toString(UUID_RADIX);
   });
 }
-const ERROR_STATUS_CODE$1 = 400;
+const ERROR_STATUS_CODE = 400;
 class ReportService {
   buildURL(type, collector) {
     const paths = {
@@ -47,7 +47,7 @@ class ReportService {
       },
       body: JSON.stringify(data)
     }).then((response) => {
-      if (response.status >= ERROR_STATUS_CODE$1) {
+      if (response.status >= ERROR_STATUS_CODE) {
         throw new Error(`Request failed with status ${response.status}`);
       }
     }).catch((error) => {
@@ -149,72 +149,77 @@ class PromiseErrors {
     this.options = { ...this.options, ...options };
   }
 }
-const ERROR_STATUS_CODE = 400;
 class AjaxErrors {
   constructor(options) {
     this.enabled = false;
+    this.originalXHROpen = null;
+    this.originalXHRSend = null;
     this.options = options;
     this.reportService = new ReportService();
   }
   enable() {
     if (this.enabled) return;
     this.interceptXHR();
-    this.interceptFetch();
     this.enabled = true;
   }
   disable() {
+    if (!this.enabled) return;
+    this.restoreXHR();
     this.enabled = false;
   }
   interceptXHR() {
-    const originalOpen = XMLHttpRequest.prototype.open;
-    const originalSend = XMLHttpRequest.prototype.send;
-    const reportService = this.reportService;
-    XMLHttpRequest.prototype.open = function(method, url, async = true, user = null, password = null) {
-      this._method = method;
-      this._url = url.toString();
-      originalOpen.call(this, method, url, async, user, password);
+    const self = this;
+    this.originalXHROpen = XMLHttpRequest.prototype.open;
+    this.originalXHRSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function(method, url, async, username, password) {
+      const xhr = this;
+      xhr._apmMethod = method;
+      xhr._apmUrl = url.toString();
+      xhr._apmStartTime = Date.now();
+      return self.originalXHROpen.call(this, method, url, async ?? false, username, password);
     };
     XMLHttpRequest.prototype.send = function(body) {
-      this.addEventListener("load", () => {
-        if (this.status >= ERROR_STATUS_CODE) {
-          const errorInfo = {
-            uniqueId: generateUUID(),
-            service: "apm-client",
-            serviceVersion: "1.0.0",
-            pagePath: window.location.pathname,
-            category: "AJAX_ERROR",
-            grade: "ERROR",
-            errorUrl: this._url ?? "",
-            message: `Status: ${this.status}`,
-            collector: "http://localhost:12800"
-          };
-          reportService.sendError(errorInfo);
-        }
-      });
-      originalSend.call(this, body);
-    };
-  }
-  interceptFetch() {
-    const originalFetch = window.fetch;
-    const reportService = this.reportService;
-    window.fetch = async function(input, init) {
-      const response = await originalFetch.call(window, input, init);
-      if (response.status >= ERROR_STATUS_CODE) {
+      const xhr = this;
+      xhr.addEventListener("error", function() {
         const errorInfo = {
           uniqueId: generateUUID(),
-          service: "apm-client",
-          serviceVersion: "1.0.0",
-          pagePath: window.location.pathname,
+          service: self.options.service,
+          serviceVersion: self.options.serviceVersion,
+          pagePath: self.options.pagePath,
           category: "AJAX_ERROR",
           grade: "ERROR",
-          errorUrl: response.url,
-          message: `Status: ${response.status}`,
-          collector: "http://localhost:12800"
+          errorUrl: xhr._apmUrl || window.location.href,
+          message: `AJAX request failed: ${xhr._apmMethod} ${xhr._apmUrl}`,
+          collector: self.options.collector,
+          stack: void 0
         };
-        reportService.sendError(errorInfo);
-      }
-      return response;
+        self.reportService.sendError(errorInfo);
+      });
+      xhr.addEventListener("timeout", function() {
+        const errorInfo = {
+          uniqueId: generateUUID(),
+          service: self.options.service,
+          serviceVersion: self.options.serviceVersion,
+          pagePath: self.options.pagePath,
+          category: "AJAX_ERROR",
+          grade: "ERROR",
+          errorUrl: xhr._apmUrl || window.location.href,
+          message: `AJAX request timeout: ${xhr._apmMethod} ${xhr._apmUrl}`,
+          collector: self.options.collector,
+          stack: void 0
+        };
+        self.reportService.sendError(errorInfo);
+      });
+      return self.originalXHRSend.call(this, body);
     };
+  }
+  restoreXHR() {
+    if (this.originalXHROpen) {
+      XMLHttpRequest.prototype.open = this.originalXHROpen;
+    }
+    if (this.originalXHRSend) {
+      XMLHttpRequest.prototype.send = this.originalXHRSend;
+    }
   }
   updateConfig(options) {
     this.options = { ...this.options, ...options };

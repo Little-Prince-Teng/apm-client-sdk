@@ -5,6 +5,7 @@ APM Client SDK - 前端应用性能监控SDK，支持Vue2/Vue3，提供错误监
 ## 📊 技术框架
 
 ### 当前技术栈
+
 - **语言**: TypeScript 4.9.5
 - **构建工具**: Webpack 5.75.0
 - **代码规范**: TSLint 5.20.1 + Prettier 2.1.1
@@ -12,6 +13,7 @@ APM Client SDK - 前端应用性能监控SDK，支持Vue2/Vue3，提供错误监
 - **核心依赖**: js-base64 3.6.0
 
 ### 重构后技术栈（推荐）
+
 - **语言**: TypeScript 5.3.0
 - **构建工具**: Vite 5.0.0 + tsup 8.0.0
 - **代码规范**: ESLint 8.54.0 + Prettier 3.1.0
@@ -21,6 +23,7 @@ APM Client SDK - 前端应用性能监控SDK，支持Vue2/Vue3，提供错误监
 - **Vue支持**: Vue 3.3.0 + @vue/test-utils 2.4.0
 
 ### 核心特性
+
 - ✅ 错误监控（JS、Promise、Vue、Ajax、资源）
 - ✅ 性能监控（Performance API、FMP）
 - ✅ 链路追踪（XHR、Fetch拦截）
@@ -35,7 +38,7 @@ APM Client SDK - 前端应用性能监控SDK，支持Vue2/Vue3，提供错误监
 
 ### 整体流程概览
 
-```
+```流程阶段
 阶段一：环境准备与基础设施升级 (Week 1)
   ↓
 阶段二：核心功能重构 (Week 2-3)
@@ -136,7 +139,7 @@ npm run type-check
 
 ### 步骤2.1：重构目录结构
 
-```
+```目录结构
 src/
 ├── core/              # 核心功能（不依赖框架）
 │   ├── monitor.ts     # 主监控类
@@ -155,6 +158,7 @@ src/
 ### 步骤2.2：定义核心类型
 
 创建 `src/core/types/index.ts`，定义完整的类型接口：
+
 - `APMOptions` - 基础配置选项
 - `ErrorTrackingOptions` - 错误追踪选项
 - `PerformanceTrackingOptions` - 性能追踪选项
@@ -167,6 +171,7 @@ src/
 ### 步骤2.3：重构核心监控类
 
 创建 `src/core/monitor.ts`，实现 `APMClient` 类：
+
 - `init()` - 初始化监控
 - `updateConfig()` - 更新配置
 - `captureError()` - 捕获错误
@@ -176,6 +181,7 @@ src/
 ### 步骤2.4：重构错误追踪模块
 
 创建 `src/core/errors/index.ts`，实现 `ErrorTracker` 类：
+
 - `JSErrors` - JS执行错误
 - `PromiseErrors` - Promise错误
 - `AjaxErrors` - Ajax请求错误
@@ -185,12 +191,14 @@ src/
 ### 步骤2.5：重构性能追踪模块
 
 创建 `src/core/performance/index.ts`，实现 `PerformanceTracker` 类：
+
 - `track()` - 追踪性能
 - `calculateFMP()` - 计算首次有效绘制
 
 ### 步骤2.6：重构链路追踪模块
 
 创建 `src/core/trace/index.ts`，实现 `TraceTracker` 类：
+
 - `XHRInterceptor` - XHR请求拦截
 - `FetchInterceptor` - Fetch请求拦截
 - `setupReportTimer()` - 设置上报定时器
@@ -199,6 +207,7 @@ src/
 ### 步骤2.7：重构服务层
 
 创建 `src/core/services/report.ts`，实现 `ReportService` 类：
+
 - `sendError()` - 发送错误数据
 - `sendPerformance()` - 发送性能数据
 - `sendSegments()` - 发送链路数据
@@ -211,6 +220,7 @@ src/
 ### 步骤3.1：创建兼容层
 
 创建 `src/core/legacy.ts`，实现 `createLegacyClient()` 函数：
+
 - 保持所有旧API方法签名
 - 将旧API调用映射到新的APMClient实例
 - 保持 `customOptions` 对象
@@ -219,6 +229,7 @@ src/
 ### 步骤3.2：创建主入口文件
 
 创建 `src/index.ts`，导出兼容层和新的API：
+
 - 默认导出 `ClientMonitor`（兼容层）
 - 导出 `APMClient` 类（新API）
 - 导出所有类型定义
@@ -230,6 +241,7 @@ src/
 ### 步骤4.1：创建Vue3插件
 
 创建 `src/plugins/vue3.ts`，实现：
+
 - `createAPMPlugin()` - Vue3插件函数
 - `useAPM()` - Composition API Hook
 - 自动错误处理集成
@@ -238,6 +250,7 @@ src/
 ### 步骤4.2：创建Vue3 Composables
 
 创建 `src/composables/useAPM.ts`，实现：
+
 - `useAPM()` - 基础Hook
 - `useErrorTracking()` - 错误追踪Hook
 - `usePerformanceTracking()` - 性能追踪Hook
@@ -250,12 +263,14 @@ src/
 ### 步骤5.1：创建测试配置
 
 创建 `tests/setup.ts`，配置测试环境：
+
 - Mock `fetch` API
 - 清理Mock
 
 ### 步骤5.2：创建兼容性测试
 
 创建 `tests/compatibility/legacy-api.test.ts`，测试：
+
 - 所有旧API方法导出
 - `register()` 方法
 - `setPerformance()` 方法
@@ -267,6 +282,7 @@ src/
 ### 步骤5.3：创建核心功能测试
 
 创建 `tests/unit/monitor.test.ts`，测试：
+
 - `APMClient` 实例创建
 - 配置更新
 - 错误捕获
@@ -275,6 +291,7 @@ src/
 ### 步骤5.4：创建Vue3插件测试
 
 创建 `tests/integration/vue3-plugin.test.ts`，测试：
+
 - 插件安装
 - 依赖注入
 - `useAPM` Composable
@@ -299,6 +316,7 @@ npm run test:coverage
 ### 步骤6.1：创建迁移指南
 
 创建 `MIGRATION.md`，包含：
+
 - 从 v0.11.x 升级到 v0.12.0 的步骤
 - 新功能介绍
 - Vue3使用示例
@@ -307,6 +325,7 @@ npm run test:coverage
 ### 步骤6.2：更新README
 
 更新 `README.md`，添加：
+
 - 项目标题和描述
 - 技术框架列表
 - 重构方案文档
@@ -316,6 +335,7 @@ npm run test:coverage
 ### 步骤6.3：创建发布脚本
 
 创建 `scripts/release.sh`，实现：
+
 - 版本更新
 - 测试运行
 - 构建执行
@@ -325,6 +345,7 @@ npm run test:coverage
 ### 步骤6.4：创建CHANGELOG
 
 更新 `CHANGELOG.md`，记录：
+
 - 新增功能
 - 变更内容
 - 修复问题
@@ -489,6 +510,7 @@ npm install @power/apm-client-js@latest
 ### 使用方式对比
 
 **现有项目（无需修改）**：
+
 ```javascript
 import ClientMonitor from '@power/apm-client-js';
 
@@ -502,6 +524,7 @@ ClientMonitor.register({
 ```
 
 **新项目（推荐方式）**：
+
 ```typescript
 import { createAPMPlugin } from '@power/apm-client-js/vue3'
 import { createApp } from 'vue'
@@ -748,7 +771,7 @@ app.on('routeChange', function (next) {
 });
 ```
 
-### Catching errors in frames, including React, Angular, Vue.
+### Catching errors in frames, including React, Angular, Vue
 
 ```js
 // Angular
@@ -821,7 +844,7 @@ Vue.config.errorHandler = (error) => {
 };
 ```
 
-### According to different pages or modules, add custom tags to spans.
+### According to different pages or modules, add custom tags to spans
 
 ```js
 app.on('routeChange', function () {
