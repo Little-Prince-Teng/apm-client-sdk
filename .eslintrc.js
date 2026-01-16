@@ -13,6 +13,24 @@ module.exports = {
     'prettier'
   ],
   plugins: ['@typescript-eslint', 'prettier'],
+  overrides: [
+    {
+      files: ['*.config.ts', '*.config.js', '.eslintrc.js'],
+      parserOptions: {
+        project: null
+      },
+      rules: {
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-unsafe-argument': 'off',
+        '@typescript-eslint/no-unsafe-return': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/strict-boolean-expressions': 'off'
+      }
+    }
+  ],
   rules: {
     'prettier/prettier': 'error',
     
@@ -39,6 +57,8 @@ module.exports = {
     }],
     '@typescript-eslint/prefer-nullish-coalescing': 'warn',
     
-    'no-console': ['warn', { allow: ['warn', 'error'] }]
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'semi': 'off',
+    '@typescript-eslint/semi': 'off'
   }
 };
