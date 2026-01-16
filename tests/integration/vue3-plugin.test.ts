@@ -15,7 +15,7 @@ describe('Vue3 Plugin', () => {
       collector: 'http://test.com',
       service: 'test-service',
       serviceVersion: '1.0.0',
-      pagePath: '/test'
+      pagePath: '/test',
     });
 
     expect(() => app.use(plugin)).not.toThrow();
@@ -26,7 +26,7 @@ describe('Vue3 Plugin', () => {
       collector: 'http://test.com',
       service: 'test-service',
       serviceVersion: '1.0.0',
-      pagePath: '/test'
+      pagePath: '/test',
     });
 
     app.use(plugin);
@@ -40,7 +40,7 @@ describe('Vue3 Plugin', () => {
       collector: 'http://test.com',
       service: 'test-service',
       serviceVersion: '1.0.0',
-      pagePath: '/test'
+      pagePath: '/test',
     });
 
     app.use(plugin);

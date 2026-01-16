@@ -73,7 +73,7 @@ describe('Legacy API Compatibility', () => {
     const invalidTags = [{ key: 'test' }];
 
     expect(ClientMonitor.validateTags(validTags)).toBe(true);
-    expect(ClientMonitor.validateTags(invalidTags)).toBe(false);
+    expect(ClientMonitor.validateTags(invalidTags as any)).toBe(false);
   });
 
   it('should validate options correctly', () => {
