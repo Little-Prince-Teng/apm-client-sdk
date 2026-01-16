@@ -1,3 +1,526 @@
+# @power/apm-client-js
+
+APM Client SDK - 前端应用性能监控SDK，支持Vue2/Vue3，提供错误监控、性能追踪、链路追踪等功能
+
+## 📊 技术框架
+
+### 当前技术栈
+- **语言**: TypeScript 4.9.5
+- **构建工具**: Webpack 5.75.0
+- **代码规范**: TSLint 5.20.1 + Prettier 2.1.1
+- **Git钩子**: Husky 8.0.3 + lint-staged 13.2.1
+- **核心依赖**: js-base64 3.6.0
+
+### 重构后技术栈（推荐）
+- **语言**: TypeScript 5.3.0
+- **构建工具**: Vite 5.0.0 + tsup 8.0.0
+- **代码规范**: ESLint 8.54.0 + Prettier 3.1.0
+- **测试框架**: Vitest 1.0.0 + @vitest/ui 1.0.0
+- **Git钩子**: Husky 8.0.3 + lint-staged 15.1.0
+- **核心依赖**: js-base64 3.7.0
+- **Vue支持**: Vue 3.3.0 + @vue/test-utils 2.4.0
+
+### 核心特性
+- ✅ 错误监控（JS、Promise、Vue、Ajax、资源）
+- ✅ 性能监控（Performance API、FMP）
+- ✅ 链路追踪（XHR、Fetch拦截）
+- ✅ Vue2/Vue3支持
+- ✅ Composition API
+- ✅ TypeScript支持
+- ✅ 完全向后兼容
+
+---
+
+## 🚀 重构兼容方案实施链路
+
+### 整体流程概览
+
+```
+阶段一：环境准备与基础设施升级 (Week 1)
+  ↓
+阶段二：核心功能重构 (Week 2-3)
+  ↓
+阶段三：兼容层实现 (Week 3-4)
+  ↓
+阶段四：Vue3插件开发 (Week 4-5)
+  ↓
+阶段五：测试与验证 (Week 5-6)
+  ↓
+阶段六：文档与发布 (Week 6-7)
+```
+
+---
+
+## 📦 阶段一：环境准备与基础设施升级
+
+### 步骤1.1：备份当前代码
+
+```bash
+# 创建备份分支
+git checkout -b backup/before-refactor
+git push origin backup/before-refactor
+
+# 创建开发分支
+git checkout -b feature/refactor-vue3
+```
+
+### 步骤1.2：更新package.json依赖
+
+更新后的核心依赖配置：
+
+```json
+{
+  "name": "@power/apm-client-js",
+  "version": "0.12.0",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./vue3": {
+      "import": "./dist/vue3.mjs",
+      "require": "./dist/vue3.js",
+      "types": "./dist/vue3.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:lib && npm run build:types",
+    "build:lib": "vite build",
+    "build:types": "vue-tsc --declaration --emitDeclarationOnly",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
+    "type-check": "vue-tsc --noEmit",
+    "prepare": "husky install",
+    "release": "standard-version",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vue": "^2.6.0 || ^3.0.0"
+  }
+}
+```
+
+### 步骤1.3：创建新的配置文件
+
+**vite.config.ts** - Vite构建配置
+**vite.vue3.config.ts** - Vue3插件构建配置
+**tsconfig.json** - TypeScript严格模式配置
+**.eslintrc.js** - ESLint配置
+**.prettierrc** - Prettier配置
+**vitest.config.ts** - 测试配置
+
+### 步骤1.4：安装依赖
+
+```bash
+# 清理旧依赖
+rm -rf node_modules package-lock.json
+
+# 安装新依赖
+npm install
+
+# 验证安装
+npm run type-check
+```
+
+---
+
+## 🏗️ 阶段二：核心功能重构
+
+### 步骤2.1：重构目录结构
+
+```
+src/
+├── core/              # 核心功能（不依赖框架）
+│   ├── monitor.ts     # 主监控类
+│   ├── errors/        # 错误处理
+│   ├── performance/   # 性能监控
+│   ├── trace/         # 链路追踪
+│   ├── services/      # 基础服务
+│   └── types/         # 类型定义
+├── plugins/           # 框架插件
+│   ├── vue2.ts        # Vue2支持（向后兼容）
+│   └── vue3.ts        # Vue3支持
+├── composables/       # Vue3 Composables
+└── utils/             # 工具函数
+```
+
+### 步骤2.2：定义核心类型
+
+创建 `src/core/types/index.ts`，定义完整的类型接口：
+- `APMOptions` - 基础配置选项
+- `ErrorTrackingOptions` - 错误追踪选项
+- `PerformanceTrackingOptions` - 性能追踪选项
+- `TraceTrackingOptions` - 链路追踪选项
+- `ErrorInfo` - 错误信息
+- `PerformanceData` - 性能数据
+- `SpanFields` - 链路追踪Span
+- `SegmentFields` - 链路追踪Segment
+
+### 步骤2.3：重构核心监控类
+
+创建 `src/core/monitor.ts`，实现 `APMClient` 类：
+- `init()` - 初始化监控
+- `updateConfig()` - 更新配置
+- `captureError()` - 捕获错误
+- `trackPerformance()` - 追踪性能
+- `setCustomTags()` - 设置自定义标签
+
+### 步骤2.4：重构错误追踪模块
+
+创建 `src/core/errors/index.ts`，实现 `ErrorTracker` 类：
+- `JSErrors` - JS执行错误
+- `PromiseErrors` - Promise错误
+- `AjaxErrors` - Ajax请求错误
+- `ResourceErrors` - 资源加载错误
+- `VueErrors` - Vue错误
+
+### 步骤2.5：重构性能追踪模块
+
+创建 `src/core/performance/index.ts`，实现 `PerformanceTracker` 类：
+- `track()` - 追踪性能
+- `calculateFMP()` - 计算首次有效绘制
+
+### 步骤2.6：重构链路追踪模块
+
+创建 `src/core/trace/index.ts`，实现 `TraceTracker` 类：
+- `XHRInterceptor` - XHR请求拦截
+- `FetchInterceptor` - Fetch请求拦截
+- `setupReportTimer()` - 设置上报定时器
+- `setupUnloadHandler()` - 设置页面卸载处理
+
+### 步骤2.7：重构服务层
+
+创建 `src/core/services/report.ts`，实现 `ReportService` 类：
+- `sendError()` - 发送错误数据
+- `sendPerformance()` - 发送性能数据
+- `sendSegments()` - 发送链路数据
+- `sendSegmentsByBeacon()` - 使用Beacon发送
+
+---
+
+## 🔗 阶段三：兼容层实现
+
+### 步骤3.1：创建兼容层
+
+创建 `src/core/legacy.ts`，实现 `createLegacyClient()` 函数：
+- 保持所有旧API方法签名
+- 将旧API调用映射到新的APMClient实例
+- 保持 `customOptions` 对象
+- 保持所有验证逻辑
+
+### 步骤3.2：创建主入口文件
+
+创建 `src/index.ts`，导出兼容层和新的API：
+- 默认导出 `ClientMonitor`（兼容层）
+- 导出 `APMClient` 类（新API）
+- 导出所有类型定义
+
+---
+
+## 🎨 阶段四：Vue3插件开发
+
+### 步骤4.1：创建Vue3插件
+
+创建 `src/plugins/vue3.ts`，实现：
+- `createAPMPlugin()` - Vue3插件函数
+- `useAPM()` - Composition API Hook
+- 自动错误处理集成
+- 依赖注入支持
+
+### 步骤4.2：创建Vue3 Composables
+
+创建 `src/composables/useAPM.ts`，实现：
+- `useAPM()` - 基础Hook
+- `useErrorTracking()` - 错误追踪Hook
+- `usePerformanceTracking()` - 性能追踪Hook
+- `usePageTracking()` - 页面追踪Hook
+
+---
+
+## 🧪 阶段五：测试与验证
+
+### 步骤5.1：创建测试配置
+
+创建 `tests/setup.ts`，配置测试环境：
+- Mock `fetch` API
+- 清理Mock
+
+### 步骤5.2：创建兼容性测试
+
+创建 `tests/compatibility/legacy-api.test.ts`，测试：
+- 所有旧API方法导出
+- `register()` 方法
+- `setPerformance()` 方法
+- `setCustomTags()` 方法
+- `validateTags()` 方法
+- `validateOptions()` 方法
+- `window.ClientMonitor` 挂载
+
+### 步骤5.3：创建核心功能测试
+
+创建 `tests/unit/monitor.test.ts`，测试：
+- `APMClient` 实例创建
+- 配置更新
+- 错误捕获
+- 自定义标签设置
+
+### 步骤5.4：创建Vue3插件测试
+
+创建 `tests/integration/vue3-plugin.test.ts`，测试：
+- 插件安装
+- 依赖注入
+- `useAPM` Composable
+
+### 步骤5.5：运行测试
+
+```bash
+# 运行所有测试
+npm test
+
+# 运行测试并查看UI
+npm run test:ui
+
+# 运行测试并生成覆盖率报告
+npm run test:coverage
+```
+
+---
+
+## 📚 阶段六：文档与发布
+
+### 步骤6.1：创建迁移指南
+
+创建 `MIGRATION.md`，包含：
+- 从 v0.11.x 升级到 v0.12.0 的步骤
+- 新功能介绍
+- Vue3使用示例
+- 常见问题解答
+
+### 步骤6.2：更新README
+
+更新 `README.md`，添加：
+- 项目标题和描述
+- 技术框架列表
+- 重构方案文档
+- 快速开始指南
+- 完整API文档
+
+### 步骤6.3：创建发布脚本
+
+创建 `scripts/release.sh`，实现：
+- 版本更新
+- 测试运行
+- 构建执行
+- Git提交和标签
+- npm发布
+
+### 步骤6.4：创建CHANGELOG
+
+更新 `CHANGELOG.md`，记录：
+- 新增功能
+- 变更内容
+- 修复问题
+- 废弃警告
+
+---
+
+## 🚀 完整执行流程
+
+### 执行命令汇总
+
+```bash
+# ===== 阶段一：环境准备与基础设施升级 =====
+# 1. 备份当前代码
+git checkout -b backup/before-refactor
+git push origin backup/before-refactor
+git checkout -b feature/refactor-vue3
+
+# 2. 更新package.json（手动编辑）
+
+# 3. 创建配置文件
+mkdir -p config tests/{unit,integration,compatibility}
+
+# 4. 创建配置文件（使用上面的代码）
+
+# 5. 安装依赖
+rm -rf node_modules package-lock.json
+npm install
+
+# 6. 验证安装
+npm run type-check
+
+# ===== 阶段二：核心功能重构 =====
+# 7. 创建目录结构
+mkdir -p src/core/{errors,performance,trace,services,types}
+mkdir -p src/plugins
+mkdir -p src/utils
+
+# 8. 创建核心文件
+
+# ===== 阶段三：兼容层实现 =====
+# 9. 创建兼容层
+
+# ===== 阶段四：Vue3插件开发 =====
+# 10. 创建Vue3插件
+
+# ===== 阶段五：测试与验证 =====
+# 11. 创建测试文件
+
+# 12. 运行测试
+npm test
+npm run test:coverage
+
+# ===== 阶段六：文档与发布 =====
+# 13. 创建文档
+
+# 14. 构建项目
+npm run build
+
+# 15. 运行完整检查
+npm run lint
+npm run type-check
+npm test
+
+# 16. 提交代码
+git add .
+git commit -m "feat: refactor with Vue3 support and backward compatibility"
+
+# 17. 推送到远程
+git push origin feature/refactor-vue3
+
+# 18. 创建Pull Request
+
+# 19. 发布版本
+chmod +x scripts/release.sh
+./scripts/release.sh 0.12.0
+```
+
+---
+
+## 📊 验证清单
+
+### 兼容性验证
+
+```bash
+# 1. 创建测试项目
+mkdir test-legacy-project
+cd test-legacy-project
+npm init -y
+npm install ../apm-client-sdk
+
+# 2. 创建测试文件并运行
+```
+
+### Vue3验证
+
+```bash
+# 1. 创建Vue3测试项目
+npm create vue@latest test-vue3-project
+cd test-vue3-project
+npm install ../apm-client-sdk
+
+# 2. 修改main.ts并运行
+```
+
+---
+
+## ✅ 完成检查清单
+
+- [ ] 阶段一：环境准备与基础设施升级
+  - [ ] 备份当前代码
+  - [ ] 更新package.json
+  - [ ] 创建配置文件
+  - [ ] 安装依赖
+  - [ ] 验证安装
+
+- [ ] 阶段二：核心功能重构
+  - [ ] 重构目录结构
+  - [ ] 定义核心类型
+  - [ ] 重构核心监控类
+  - [ ] 重构错误追踪模块
+  - [ ] 重构性能追踪模块
+  - [ ] 重构链路追踪模块
+  - [ ] 重构服务层
+
+- [ ] 阶段三：兼容层实现
+  - [ ] 创建兼容层
+  - [ ] 创建主入口文件
+
+- [ ] 阶段四：Vue3插件开发
+  - [ ] 创建Vue3插件
+  - [ ] 创建Vue3 Composables
+
+- [ ] 阶段五：测试与验证
+  - [ ] 创建测试配置
+  - [ ] 创建兼容性测试
+  - [ ] 创建核心功能测试
+  - [ ] 创建Vue3插件测试
+  - [ ] 运行测试
+
+- [ ] 阶段六：文档与发布
+  - [ ] 创建迁移指南
+  - [ ] 更新README
+  - [ ] 创建发布脚本
+  - [ ] 创建CHANGELOG
+  - [ ] 构建项目
+  - [ ] 运行完整检查
+  - [ ] 提交代码
+  - [ ] 发布版本
+
+---
+
+## 🎉 兼容性保证
+
+### 现有项目升级
+
+```bash
+# 现有项目直接升级，无需修改代码
+npm install @power/apm-client-js@latest
+```
+
+### 使用方式对比
+
+**现有项目（无需修改）**：
+```javascript
+import ClientMonitor from '@power/apm-client-js';
+
+ClientMonitor.register({
+  collector: 'http://127.0.0.1:12800',
+  service: 'test-ui',
+  serviceVersion: 'v1.0.0',
+  pagePath: window.location.href,
+  loginUser: 'test-user',
+});
+```
+
+**新项目（推荐方式）**：
+```typescript
+import { createAPMPlugin } from '@power/apm-client-js/vue3'
+import { createApp } from 'vue'
+
+const app = createApp(App)
+
+app.use(createAPMPlugin({
+  collector: 'http://127.0.0.1:12800',
+  service: 'vue3-app',
+  serviceVersion: '1.0.0',
+  pagePath: window.location.pathname
+}))
+
+app.mount('#app')
+```
+
+---
+
 ## 基本使用
 
 ```js
