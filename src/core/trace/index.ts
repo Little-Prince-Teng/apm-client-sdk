@@ -14,8 +14,8 @@ export class TraceTracker {
   constructor(options: TraceTrackingOptions) {
     this.options = options;
     this.reportService = new ReportService();
-    this.xhrInterceptor = new XHRInterceptor(options, this.segments);
-    this.fetchInterceptor = new FetchInterceptor(options, this.segments);
+    this.xhrInterceptor = new XHRInterceptor();
+    this.fetchInterceptor = new FetchInterceptor();
   }
 
   enable(options: TraceTrackingOptions): void {
@@ -33,18 +33,18 @@ export class TraceTracker {
   }
 
   private setupReportTimer(): void {
-    if (this.timer) clearInterval(this.timer);
+    if (this.timer != null) clearInterval(this.timer);
 
     this.timer = window.setInterval(() => {
       if (this.segments.length > 0) {
         this.reportService.sendSegments([...this.segments]);
         this.segments.splice(0, this.segments.length);
       }
-    }, this.options.traceTimeInterval || 60000);
+    }, this.options.traceTimeInterval ?? 60000);
   }
 
   private clearReportTimer(): void {
-    if (this.timer) {
+    if (this.timer != null) {
       clearInterval(this.timer);
       this.timer = null;
     }

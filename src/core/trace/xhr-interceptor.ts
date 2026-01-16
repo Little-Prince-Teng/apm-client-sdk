@@ -1,10 +1,7 @@
-import { TraceTrackingOptions, SegmentFields } from '../types';
+import { TraceTrackingOptions } from '../types';
 
 export class XHRInterceptor {
-  constructor(
-    private options: TraceTrackingOptions,
-    private segments: SegmentFields[]
-  ) {}
+  constructor() {}
 
   enable(): void {
     // TODO: Implement XHR interception logic
@@ -14,7 +11,7 @@ export class XHRInterceptor {
     // TODO: Implement XHR cleanup logic
   }
 
-  updateConfig(options: TraceTrackingOptions): void {
-    this.options = options;
+  updateConfig(_options: TraceTrackingOptions): void {
+    // TODO: Implement config update logic
   }
 }

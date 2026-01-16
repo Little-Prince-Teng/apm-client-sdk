@@ -2,6 +2,7 @@ import { ErrorTrackingOptions, ErrorInfo } from '../types';
 import { generateUUID } from '../../utils/uuid';
 import { ReportService } from '../services/report';
 
+const ERROR_STATUS_CODE = 400;
 interface XHRWithMetadata extends XMLHttpRequest {
   _method?: string;
   _url?: string;
@@ -52,7 +53,7 @@ export class AjaxErrors {
       body?: Document | XMLHttpRequestBodyInit | null
     ): void {
       this.addEventListener('load', () => {
-        if (this.status >= 400) {
+        if (this.status >= ERROR_STATUS_CODE) {
           const errorInfo: ErrorInfo = {
             uniqueId: generateUUID(),
             service: 'apm-client',
@@ -60,7 +61,7 @@ export class AjaxErrors {
             pagePath: window.location.pathname,
             category: 'AJAX_ERROR',
             grade: 'ERROR',
-            errorUrl: this._url || '',
+            errorUrl: this._url ?? '',
             message: `Status: ${this.status}`,
             collector: 'http://localhost:12800',
           };
@@ -81,7 +82,7 @@ export class AjaxErrors {
     ): Promise<Response> {
       const response = await originalFetch.call(window, input, init);
 
-      if (response.status >= 400) {
+      if (response.status >= ERROR_STATUS_CODE) {
         const errorInfo: ErrorInfo = {
           uniqueId: generateUUID(),
           service: 'apm-client',

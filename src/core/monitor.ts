@@ -38,11 +38,15 @@ export class APMClient {
     this.options = { ...this.options, ...options };
     this.validateOptions();
 
-    if (options.jsErrors || options.apiErrors || options.resourceErrors) {
+    if (
+      (options.jsErrors ?? false) ||
+      (options.apiErrors ?? false) ||
+      (options.resourceErrors ?? false)
+    ) {
       this.errorTracker.enable(options);
     }
 
-    if (options.autoTracePerf && !options.enableSPA) {
+    if ((options.autoTracePerf ?? false) && !(options.enableSPA ?? false)) {
       this.performanceTracker.track();
     }
 

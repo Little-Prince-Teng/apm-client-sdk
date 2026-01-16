@@ -26,7 +26,7 @@ export function useErrorTracking() {
     } catch (error) {
       captureError(
         error as Error,
-        { context: context || 'async-operation' } as Record<string, unknown>
+        { context: context ?? 'async-operation' } as Record<string, unknown>
       );
       return null;
     }

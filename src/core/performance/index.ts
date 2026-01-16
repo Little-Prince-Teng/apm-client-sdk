@@ -20,7 +20,7 @@ export class PerformanceTracker {
   }
 
   private collectAndReport(): void {
-    if (!this.options.autoTracePerf) return;
+    if (!(this.options.autoTracePerf ?? false)) return;
 
     const performanceData: PerformanceData = {
       uniqueId: generateUUID(),
@@ -31,7 +31,7 @@ export class PerformanceTracker {
       timing: performance.timing,
     };
 
-    if (this.options.useFmp) {
+    if (this.options.useFmp ?? false) {
       performanceData.fmpTime = this.calculateFMP();
     }
 

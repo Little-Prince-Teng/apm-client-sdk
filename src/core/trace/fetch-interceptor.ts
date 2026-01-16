@@ -1,10 +1,7 @@
-import { TraceTrackingOptions, SegmentFields } from '../types';
+import { TraceTrackingOptions } from '../types';
 
 export class FetchInterceptor {
-  constructor(
-    private options: TraceTrackingOptions,
-    private segments: SegmentFields[]
-  ) {}
+  constructor() {}
 
   enable(): void {
     // TODO: Implement Fetch interception logic
@@ -14,7 +11,7 @@ export class FetchInterceptor {
     // TODO: Implement Fetch cleanup logic
   }
 
-  updateConfig(options: TraceTrackingOptions): void {
-    this.options = options;
+  updateConfig(_options: TraceTrackingOptions): void {
+    // TODO: Implement config update logic
   }
 }

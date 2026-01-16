@@ -25,7 +25,7 @@ export class ErrorTracker {
   enable(options: ErrorTrackingOptions): void {
     this.options = { ...this.options, ...options };
 
-    if (options.jsErrors) {
+    if (options.jsErrors ?? false) {
       this.jsErrors.enable();
       this.promiseErrors.enable();
       if (options.vue) {
@@ -33,11 +33,11 @@ export class ErrorTracker {
       }
     }
 
-    if (options.apiErrors) {
+    if (options.apiErrors ?? false) {
       this.ajaxErrors.enable();
     }
 
-    if (options.resourceErrors) {
+    if (options.resourceErrors ?? false) {
       this.resourceErrors.enable();
     }
   }

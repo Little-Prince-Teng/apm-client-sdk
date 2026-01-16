@@ -16,7 +16,7 @@ export class VueErrors {
     if (this.enabled) return;
 
     if (vue && vue.config) {
-      vue.config.errorHandler = (error: Error, vm: unknown, info: string) => {
+      vue.config.errorHandler = (error: Error, _vm: unknown, info: string) => {
         const errorInfo: ErrorInfo = {
           uniqueId: generateUUID(),
           service: this.options.service,

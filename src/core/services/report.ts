@@ -1,5 +1,6 @@
 import { ErrorInfo, PerformanceData, SegmentFields } from '../types';
 
+const ERROR_STATUS_CODE = 400;
 export class ReportService {
   private buildURL(type: string, collector: string): string {
     const paths: Record<string, string> = {
@@ -43,7 +44,7 @@ export class ReportService {
       body: JSON.stringify(data),
     })
       .then((response) => {
-        if (response.status >= 400) {
+        if (response.status >= ERROR_STATUS_CODE) {
           throw new Error(`Request failed with status ${response.status}`);
         }
       })
