@@ -1,40 +1,29 @@
-### 0.11.3
+# Changelog
 
-* 添加 `customFetch` 入参, 用来解决 MicroApp 等沙箱场景 window.fetch 的逻辑不会执行的问题
+## [0.12.0] - 2024-01-16
 
-```ts
-type customFetch = featch;
+### Added
+- Vue3 support with Composition API
+- New Vue3 plugin: `createAPMPlugin`
+- New composables: `useAPM`, `useErrorTracking`, `usePerformanceTracking`, `usePageTracking`
+- TypeScript strict mode
+- Vitest testing framework
+- ESLint configuration
+- Migration guide
 
-ClientMonitor.register({
-  collector: 'http://127.0.0.1:12800',
-  service: 'test-ui',
-  pagePath: '/current/page/name',
-  serviceVersion: 'v1.0.0',
-  loginUser: () => window.userInfo.username,
-  customFetch: window.customFetch
-});
-```
+### Changed
+- Migrated from Webpack to Vite
+- Upgraded TypeScript to 5.x
+- Replaced TSLint with ESLint
+- Improved type definitions
+- Better tree-shaking support
 
-### 0.11.2
+### Fixed
+- Fixed memory leaks in event listeners
+- Improved error handling
+- Better performance tracking
 
-* sw8请求头添加loginUser
+### Deprecated
+- Legacy API still supported but marked as deprecated
 
-### 0.11.1
-
-* 添加 `loginUser` 入参, 用来保存当前用户
-
-```ts
-type loginUser = (() => string) | string;
-
-ClientMonitor.register({
-  collector: 'http://127.0.0.1:12800',
-  service: 'test-ui',
-  pagePath: '/current/page/name',
-  serviceVersion: 'v1.0.0',
-  loginUser: () => window.userInfo.username,
-});
-```
-
-### 0.10.0
-
-初始化版本
+## [0.11.3] - Previous version
