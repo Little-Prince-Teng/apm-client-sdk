@@ -112,7 +112,6 @@ git checkout -b feature/refactor-vue3
 ### 步骤1.3：创建新的配置文件
 
 **vite.config.ts** - Vite构建配置
-**vite.vue3.config.ts** - Vue3插件构建配置
 **tsconfig.json** - TypeScript严格模式配置
 **.eslintrc.js** - ESLint配置
 **.prettierrc** - Prettier配置

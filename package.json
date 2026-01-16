@@ -17,11 +17,6 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./vue3": {
-      "import": "./dist/vue3.mjs",
-      "require": "./dist/vue3.js",
-      "types": "./dist/vue3.d.ts"
     }
   },
   "files": [
