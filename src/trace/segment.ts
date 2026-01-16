@@ -1,5 +1,3 @@
-
-
 import xhrInterceptor, { setOptions } from './interceptors/xhr';
 import windowFetch, { setFetchOptions } from './interceptors/fetch';
 import Report from '../services/report';

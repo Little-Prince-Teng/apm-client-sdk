@@ -1,5 +1,5 @@
-
 import { ReportTypes } from './constant';
+
 class Report {
   private url: string = '';
 
@@ -17,12 +17,16 @@ class Report {
     }
   }
 
-  public sendByFetch(data: any) {
-    delete data.collector;
+  public sendByFetch(data: unknown): void {
+    const dataObj = data as Record<string, unknown>;
+    delete dataObj.collector;
     if (!this.url) {
       return;
     }
-    const sendRequest = new Request(this.url, { method: 'POST', body: JSON.stringify(data) });
+    const sendRequest = new Request(this.url, {
+      method: 'POST',
+      body: JSON.stringify(dataObj),
+    });
 
     fetch(sendRequest)
       .then((response) => {
@@ -35,7 +39,7 @@ class Report {
       });
   }
 
-  public sendByXhr(data: any) {
+  public sendByXhr(data: unknown): void {
     if (!this.url) {
       return;
     }
@@ -43,7 +47,7 @@ class Report {
 
     xhr.open('post', this.url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function () {
+    xhr.onreadystatechange = () => {
       if (xhr.readyState === 4 && xhr.status < 400) {
         console.log('Report successfully');
       }
@@ -51,7 +55,7 @@ class Report {
     xhr.send(JSON.stringify(data));
   }
 
-  public sendByBeacon(data: any) {
+  public sendByBeacon(data: unknown): void {
     if (!this.url) {
       return;
     }
@@ -59,7 +63,7 @@ class Report {
       navigator.sendBeacon(
         this.url,
         new Blob([JSON.stringify(data)], {
-          type: 'application/json'
+          type: 'application/json',
         })
       );
       return;
@@ -68,4 +72,5 @@ class Report {
     this.sendByXhr(data);
   }
 }
+
 export default Report;

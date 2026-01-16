@@ -1,5 +1,3 @@
-
-
 import uuid from '../services/uuid';
 import Base from '../services/base';
 import { GradeTypeEnum, ErrorsCategory, ReportTypes } from '../services/constant';
@@ -44,7 +42,7 @@ class AjaxErrors extends Base {
           stack: detail.responseText,
         };
         this.traceInfo();
-      },
+      }
     );
   }
   setOptions(opt: CustomReportOptions) {

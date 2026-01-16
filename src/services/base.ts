@@ -1,4 +1,3 @@
-
 import Task from './task';
 import { ErrorsCategory, GradeTypeEnum } from './constant';
 import { ErrorInfoFields, ReportFields } from './types';

@@ -1,5 +1,3 @@
-
-
 export default function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     /* tslint:disable */

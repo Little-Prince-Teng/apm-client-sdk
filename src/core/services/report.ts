@@ -7,7 +7,7 @@ export class ReportService {
       ERRORS: '/errors',
       PERF: '/perf',
       SEGMENT: '/segment',
-      SEGMENTS: '/segments'
+      SEGMENTS: '/segments',
     };
     return `${collector}${paths[type] || ''}`;
   }
@@ -32,34 +32,31 @@ export class ReportService {
     this.sendByBeacon(url, segments);
   }
 
-  private sendByFetch(url: string, data: any): void {
+  private sendByFetch(url: string, data: unknown): void {
     if (!url) return;
 
     fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     })
-      .then(response => {
+      .then((response) => {
         if (response.status >= 400) {
           throw new Error(`Request failed with status ${response.status}`);
         }
       })
-      .catch(error => {
-        console.error('Report error:', error);
+      .catch((error) => {
+        console.warn('Report error:', error);
       });
   }
 
-  private sendByBeacon(url: string, data: any): void {
+  private sendByBeacon(url: string, data: unknown): void {
     if (!url) return;
 
     if (typeof navigator.sendBeacon === 'function') {
-      navigator.sendBeacon(
-        url,
-        new Blob([JSON.stringify(data)], { type: 'application/json' })
-      );
+      navigator.sendBeacon(url, new Blob([JSON.stringify(data)], { type: 'application/json' }));
     } else {
       this.sendByFetch(url, data);
     }

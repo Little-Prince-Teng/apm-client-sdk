@@ -1,5 +1,3 @@
-
-
 export interface SegmentFields {
   traceId: string;
   service: string;

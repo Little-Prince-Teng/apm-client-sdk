@@ -3,7 +3,14 @@ import uuid from '../../services/uuid';
 import { SegmentFields, SpanFields } from '../type';
 import { CustomOptionsType } from '../../types';
 import Base from '../../services/base';
-import { ComponentId, ReportTypes, SpanLayer, SpanType, ErrorsCategory, GradeTypeEnum } from '../../services/constant';
+import {
+  ComponentId,
+  ReportTypes,
+  SpanLayer,
+  SpanType,
+  ErrorsCategory,
+  GradeTypeEnum,
+} from '../../services/constant';
 let customConfig: any = {};
 export default function windowFetch(options: CustomOptionsType, segments: SegmentFields[]) {
   setFetchOptions(options);
@@ -19,7 +26,8 @@ export default function windowFetch(options: CustomOptionsType, segments: Segmen
   }
 
   const wrappedFetch = async (...args: any) => {
-    const loginUser = typeof options.loginUser === 'function' ? options.loginUser() : options.loginUser;
+    const loginUser =
+      typeof options.loginUser === 'function' ? options.loginUser() : options.loginUser;
     const startTime = new Date().getTime();
     const traceId = uuid();
     const traceSegmentId = uuid();
@@ -58,8 +66,16 @@ export default function windowFetch(options: CustomOptionsType, segments: Segmen
       }
     });
     const cURL = new URL(customConfig.collector);
-    const pathname = cURL.pathname === '/' ? url.pathname : url.pathname.replace(new RegExp(`^${cURL.pathname}`), '');
-    const internals = [ReportTypes.ERROR, ReportTypes.ERRORS, ReportTypes.PERF, ReportTypes.SEGMENTS] as string[];
+    const pathname =
+      cURL.pathname === '/'
+        ? url.pathname
+        : url.pathname.replace(new RegExp(`^${cURL.pathname}`), '');
+    const internals = [
+      ReportTypes.ERROR,
+      ReportTypes.ERRORS,
+      ReportTypes.PERF,
+      ReportTypes.SEGMENTS,
+    ] as string[];
     const isSDKInternal = internals.includes(pathname);
     const hasTrace = !noTraceOrigins || (isSDKInternal && customConfig.traceSDKInternal);
 

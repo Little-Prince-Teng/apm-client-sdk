@@ -1,7 +1,16 @@
-import { APMOptions, ErrorTrackingOptions, PerformanceTrackingOptions, TraceTrackingOptions, TagOption, ErrorInfo } from './types';
+import {
+  APMOptions,
+  ErrorTrackingOptions,
+  PerformanceTrackingOptions,
+  TraceTrackingOptions,
+  TagOption,
+  ErrorInfo,
+} from './types';
 import { ErrorTracker } from './errors';
 import { PerformanceTracker } from './performance';
 import { TraceTracker } from './trace';
+
+export type { APMOptions, TagOption };
 
 export class APMClient {
   private options: APMOptions;
@@ -15,26 +24,28 @@ export class APMClient {
       service: '',
       serviceVersion: '',
       pagePath: typeof window !== 'undefined' ? window.location.pathname : '',
-      ...options
+      ...options,
     };
-    
+
     this.errorTracker = new ErrorTracker(this.options);
     this.performanceTracker = new PerformanceTracker(this.options);
     this.traceTracker = new TraceTracker(this.options);
   }
 
-  init(options: APMOptions & ErrorTrackingOptions & PerformanceTrackingOptions & TraceTrackingOptions): void {
+  init(
+    options: APMOptions & ErrorTrackingOptions & PerformanceTrackingOptions & TraceTrackingOptions
+  ): void {
     this.options = { ...this.options, ...options };
     this.validateOptions();
-    
+
     if (options.jsErrors || options.apiErrors || options.resourceErrors) {
       this.errorTracker.enable(options);
     }
-    
+
     if (options.autoTracePerf && !options.enableSPA) {
       this.performanceTracker.track();
     }
-    
+
     this.traceTracker.enable(options);
   }
 
@@ -64,7 +75,7 @@ export class APMClient {
 
   private validateOptions(): void {
     const { collector, service, pagePath, serviceVersion } = this.options;
-    
+
     if (typeof collector !== 'string') {
       this.options.collector = typeof window !== 'undefined' ? window.location.origin : '';
     }
@@ -84,12 +95,14 @@ export class APMClient {
       return false;
     }
     if (!Array.isArray(tags)) {
-      console.error('customTags must be an array');
+      console.warn('customTags must be an array');
       return false;
     }
-    const isValid = tags.every(tag => tag && typeof tag.key === 'string' && typeof tag.value === 'string');
+    const isValid = tags.every(
+      (tag) => tag && typeof tag.key === 'string' && typeof tag.value === 'string'
+    );
     if (!isValid) {
-      console.error('customTags format error');
+      console.warn('customTags format error');
     }
     return isValid;
   }

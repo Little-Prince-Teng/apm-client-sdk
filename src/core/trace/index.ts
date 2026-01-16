@@ -34,7 +34,7 @@ export class TraceTracker {
 
   private setupReportTimer(): void {
     if (this.timer) clearInterval(this.timer);
-    
+
     this.timer = window.setInterval(() => {
       if (this.segments.length > 0) {
         this.reportService.sendSegments([...this.segments]);

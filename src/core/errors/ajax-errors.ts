@@ -2,6 +2,11 @@ import { ErrorTrackingOptions, ErrorInfo } from '../types';
 import { generateUUID } from '../../utils/uuid';
 import { ReportService } from '../services/report';
 
+interface XHRWithMetadata extends XMLHttpRequest {
+  _method?: string;
+  _url?: string;
+}
+
 export class AjaxErrors {
   private options: ErrorTrackingOptions;
   private reportService: ReportService;
@@ -14,7 +19,7 @@ export class AjaxErrors {
 
   enable(): void {
     if (this.enabled) return;
-    
+
     this.interceptXHR();
     this.interceptFetch();
     this.enabled = true;
@@ -27,14 +32,25 @@ export class AjaxErrors {
   private interceptXHR(): void {
     const originalOpen = XMLHttpRequest.prototype.open;
     const originalSend = XMLHttpRequest.prototype.send;
+    const reportService = this.reportService;
 
-    XMLHttpRequest.prototype.open = function(...args) {
-      (this as any)._method = args[0];
-      (this as any)._url = args[1];
-      return originalOpen.apply(this, args);
+    XMLHttpRequest.prototype.open = function (
+      this: XHRWithMetadata,
+      method: string,
+      url: string | URL,
+      async: boolean = true,
+      user: string | null = null,
+      password: string | null = null
+    ): void {
+      this._method = method;
+      this._url = url.toString();
+      originalOpen.call(this, method, url, async, user, password);
     };
 
-    XMLHttpRequest.prototype.send = function(...args) {
+    XMLHttpRequest.prototype.send = function (
+      this: XHRWithMetadata,
+      body?: Document | XMLHttpRequestBodyInit | null
+    ): void {
       this.addEventListener('load', () => {
         if (this.status >= 400) {
           const errorInfo: ErrorInfo = {
@@ -44,23 +60,27 @@ export class AjaxErrors {
             pagePath: window.location.pathname,
             category: 'AJAX_ERROR',
             grade: 'ERROR',
-            errorUrl: (this as any)._url || '',
+            errorUrl: this._url || '',
             message: `Status: ${this.status}`,
-            collector: 'http://localhost:12800'
+            collector: 'http://localhost:12800',
           };
-          new ReportService().sendError(errorInfo);
+          reportService.sendError(errorInfo);
         }
       });
-      return originalSend.apply(this, args);
+      originalSend.call(this, body);
     };
   }
 
   private interceptFetch(): void {
     const originalFetch = window.fetch;
-    
-    window.fetch = async (...args) => {
-      const response = await originalFetch(...args);
-      
+    const reportService = this.reportService;
+
+    window.fetch = async function (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> {
+      const response = await originalFetch.call(window, input, init);
+
       if (response.status >= 400) {
         const errorInfo: ErrorInfo = {
           uniqueId: generateUUID(),
@@ -71,11 +91,11 @@ export class AjaxErrors {
           grade: 'ERROR',
           errorUrl: response.url,
           message: `Status: ${response.status}`,
-          collector: 'http://localhost:12800'
+          collector: 'http://localhost:12800',
         };
-        new ReportService().sendError(errorInfo);
+        reportService.sendError(errorInfo);
       }
-      
+
       return response;
     };
   }

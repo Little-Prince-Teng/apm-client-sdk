@@ -1,4 +1,3 @@
-
 import { ICalScore, ElementList } from './type';
 
 const getStyle = (element: Element | any, attr: any) => {
@@ -172,7 +171,9 @@ class FMPTiming {
   private checkNeedCancel(start: number): boolean {
     const time: number = performance.now() - start;
     const lastCalTime: number =
-      this.statusCollector.length > 0 ? this.statusCollector[this.statusCollector.length - 1].time : 0;
+      this.statusCollector.length > 0
+        ? this.statusCollector[this.statusCollector.length - 1].time
+        : 0;
     return time > LIMIT || time - lastCalTime > 1000;
   }
   private getTreeScore(node: Element): ICalScore | any {
@@ -241,8 +242,10 @@ class FMPTiming {
     const winTop: number = 0;
     const winRight: number = WW;
     const winBottom: number = WH;
-    const overlapX = right - left + (winRight - winLeft) - (Math.max(right, winRight) - Math.min(left, winLeft));
-    const overlapY = bottom - top + (winBottom - winTop) - (Math.max(bottom, winBottom) - Math.min(top, winTop));
+    const overlapX =
+      right - left + (winRight - winLeft) - (Math.max(right, winRight) - Math.min(left, winLeft));
+    const overlapY =
+      bottom - top + (winBottom - winTop) - (Math.max(bottom, winBottom) - Math.min(top, winTop));
 
     if (overlapX <= 0 || overlapY <= 0) {
       return 0;

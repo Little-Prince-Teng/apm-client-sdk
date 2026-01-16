@@ -1,4 +1,3 @@
-
 import { ErrorInfoFields, ReportFields } from './types';
 import Report from './report';
 

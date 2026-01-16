@@ -4,34 +4,32 @@ import {
   ErrorTrackingOptions,
   PerformanceTrackingOptions,
   TraceTrackingOptions,
-  TagOption
+  TagOption,
+  VueInstance,
 } from './types';
 
 export interface LegacyOptions
-  extends APMOptions,
-    ErrorTrackingOptions,
-    PerformanceTrackingOptions,
-    TraceTrackingOptions {
-  vue?: any;
+  extends APMOptions, ErrorTrackingOptions, PerformanceTrackingOptions, TraceTrackingOptions {
+  vue?: VueInstance;
 }
 
 export function createLegacyClient() {
   const client = new APMClient();
-  
+
   const legacyClient = {
     customOptions: {} as LegacyOptions,
-    
+
     register(configs: LegacyOptions): void {
       this.customOptions = { ...this.customOptions, ...configs };
       client.init(configs);
     },
-    
+
     setPerformance(configs: PerformanceTrackingOptions): void {
       this.customOptions = { ...this.customOptions, ...configs, useFmp: false };
       client.updateConfig(this.customOptions);
       client.trackPerformance(this.customOptions);
     },
-    
+
     catchErrors(options: ErrorTrackingOptions): void {
       const { service, pagePath, serviceVersion, collector } = options;
       const errorOptions: ErrorTrackingOptions = {
@@ -39,34 +37,34 @@ export function createLegacyClient() {
         service: service || this.customOptions.service,
         pagePath: pagePath || this.customOptions.pagePath,
         serviceVersion: serviceVersion || this.customOptions.serviceVersion,
-        collector: collector || this.customOptions.collector
+        collector: collector || this.customOptions.collector,
       };
       client.init(errorOptions);
     },
-    
+
     reportFrameErrors(configs: APMOptions, error: Error): void {
       client.captureError(error, {
         service: configs.service,
         pagePath: configs.pagePath,
         serviceVersion: configs.serviceVersion,
-        collector: configs.collector
+        collector: configs.collector,
       });
     },
-    
+
     setCustomTags(tags: TagOption[]): void {
       if (this.validateTags(tags)) {
         this.customOptions.customTags = tags;
         client.setCustomTags(tags);
       }
     },
-    
+
     validateTags(customTags?: TagOption[]): boolean {
       if (!customTags) {
         return false;
       }
       if (!Array.isArray(customTags)) {
         this.customOptions.customTags = undefined;
-        console.error('customTags error');
+        console.warn('customTags error');
         return false;
       }
       let isValid = true;
@@ -77,11 +75,11 @@ export function createLegacyClient() {
       }
       if (!isValid) {
         this.customOptions.customTags = undefined;
-        console.error('customTags error');
+        console.warn('customTags error');
       }
       return isValid;
     },
-    
+
     validateOptions(): void {
       const {
         collector,
@@ -98,11 +96,11 @@ export function createLegacyClient() {
         detailMode,
         noTraceOrigins,
         traceTimeInterval,
-        vue
+        vue,
       } = this.customOptions;
-      
+
       this.validateTags(this.customOptions.customTags);
-      
+
       if (typeof collector !== 'string') {
         this.customOptions.collector = typeof window !== 'undefined' ? window.location.origin : '';
       }
@@ -149,11 +147,11 @@ export function createLegacyClient() {
         this.customOptions.vue = undefined;
       }
     },
-    
+
     performance(configs: PerformanceTrackingOptions): void {
       client.trackPerformance(configs);
-    }
+    },
   };
-  
+
   return legacyClient;
 }

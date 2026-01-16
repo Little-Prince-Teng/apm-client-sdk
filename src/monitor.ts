@@ -1,7 +1,12 @@
-
-
 import { CustomOptionsType, CustomReportOptions, TagOption } from './types';
-import { JSErrors, PromiseErrors, AjaxErrors, ResourceErrors, VueErrors, FrameErrors } from './errors/index';
+import {
+  JSErrors,
+  PromiseErrors,
+  AjaxErrors,
+  ResourceErrors,
+  VueErrors,
+  FrameErrors,
+} from './errors/index';
 import tracePerf from './performance/index';
 import traceSegment, { setConfig } from './trace/segment';
 
@@ -43,7 +48,7 @@ const ClientMonitor = {
         () => {
           tracePerf.getPerf(configs);
         },
-        false,
+        false
       );
     }
   },

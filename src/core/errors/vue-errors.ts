@@ -1,4 +1,4 @@
-import { ErrorTrackingOptions, ErrorInfo } from '../types';
+import { ErrorTrackingOptions, ErrorInfo, VueInstance } from '../types';
 import { generateUUID } from '../../utils/uuid';
 import { ReportService } from '../services/report';
 
@@ -12,11 +12,11 @@ export class VueErrors {
     this.reportService = new ReportService();
   }
 
-  enable(vue: any): void {
+  enable(vue: VueInstance): void {
     if (this.enabled) return;
-    
+
     if (vue && vue.config) {
-      vue.config.errorHandler = (error: Error, vm: any, info: string) => {
+      vue.config.errorHandler = (error: Error, vm: unknown, info: string) => {
         const errorInfo: ErrorInfo = {
           uniqueId: generateUUID(),
           service: this.options.service,
@@ -27,13 +27,13 @@ export class VueErrors {
           errorUrl: window.location.href,
           message: info,
           collector: this.options.collector,
-          stack: error.stack
+          stack: error.stack,
         };
-        
+
         this.reportService.sendError(errorInfo);
       };
     }
-    
+
     this.enabled = true;
   }
 

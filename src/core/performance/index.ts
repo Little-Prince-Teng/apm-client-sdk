@@ -28,7 +28,7 @@ export class PerformanceTracker {
       serviceVersion: this.options.serviceVersion,
       pagePath: this.options.pagePath,
       collector: this.options.collector,
-      timing: performance.timing as PerformanceTiming
+      timing: performance.timing,
     };
 
     if (this.options.useFmp) {

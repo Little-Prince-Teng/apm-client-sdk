@@ -1,6 +1,12 @@
 import { createLegacyClient } from './core/legacy';
 import { APMClient } from './core/monitor';
-import { APMOptions, ErrorTrackingOptions, PerformanceTrackingOptions, TraceTrackingOptions, TagOption } from './core/types';
+import {
+  APMOptions,
+  ErrorTrackingOptions,
+  PerformanceTrackingOptions,
+  TraceTrackingOptions,
+  TagOption,
+} from './core/types';
 
 const ClientMonitor = createLegacyClient();
 
@@ -16,5 +22,5 @@ export type {
   ErrorTrackingOptions,
   PerformanceTrackingOptions,
   TraceTrackingOptions,
-  TagOption
+  TagOption,
 };

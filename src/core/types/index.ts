@@ -7,11 +7,17 @@ export interface APMOptions {
   customFetch?: typeof fetch;
 }
 
+export interface VueInstance {
+  config: {
+    errorHandler: (error: Error, vm: unknown, info: string) => void;
+  };
+}
+
 export interface ErrorTrackingOptions extends APMOptions {
   jsErrors?: boolean;
   apiErrors?: boolean;
   resourceErrors?: boolean;
-  vue?: any;
+  vue?: VueInstance;
 }
 
 export interface PerformanceTrackingOptions extends APMOptions {
@@ -45,6 +51,7 @@ export interface ErrorInfo {
   collector: string;
   stack?: string;
   tags?: TagOption[];
+  context?: Record<string, unknown>;
 }
 
 export interface PerformanceData {

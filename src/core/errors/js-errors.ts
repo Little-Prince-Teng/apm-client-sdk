@@ -14,7 +14,7 @@ export class JSErrors {
 
   enable(): void {
     if (this.enabled) return;
-    
+
     window.addEventListener('error', this.handleError.bind(this));
     this.enabled = true;
   }
@@ -35,9 +35,9 @@ export class JSErrors {
       errorUrl: event.filename || window.location.href,
       message: event.message,
       collector: this.options.collector,
-      stack: event.error?.stack
+      stack: event.error?.stack,
     };
-    
+
     this.reportService.sendError(errorInfo);
   }
 
@@ -53,9 +53,9 @@ export class JSErrors {
       message: error.message,
       collector: this.options.collector,
       stack: error.stack,
-      ...context
+      ...context,
     };
-    
+
     this.reportService.sendError(errorInfo);
   }
 

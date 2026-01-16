@@ -1,5 +1,3 @@
-
-
 import JSErrors from './js';
 import PromiseErrors from './promise';
 import AjaxErrors from './ajax';

@@ -1,5 +1,3 @@
-
-
 export interface ErrorInfoFields {
   uniqueId: string;
   category: string;

@@ -1,4 +1,3 @@
-
 import { IPerfDetail } from './type';
 class PagePerf {
   public getPerfTiming(): IPerfDetail {

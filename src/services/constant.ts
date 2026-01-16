@@ -1,6 +1,5 @@
 import Report from './report';
 
-
 export enum ErrorsCategory {
   AJAX_ERROR = 'ajax',
   RESOURCE_ERROR = 'resource',

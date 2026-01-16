@@ -14,7 +14,7 @@ export class PromiseErrors {
 
   enable(): void {
     if (this.enabled) return;
-    
+
     window.addEventListener('unhandledrejection', this.handleRejection.bind(this));
     this.enabled = true;
   }
@@ -35,9 +35,9 @@ export class PromiseErrors {
       errorUrl: window.location.href,
       message: event.reason?.message || 'Unhandled Promise Rejection',
       collector: this.options.collector,
-      stack: event.reason?.stack
+      stack: event.reason?.stack,
     };
-    
+
     this.reportService.sendError(errorInfo);
   }
 

@@ -1,5 +1,3 @@
-
-
 import { CustomOptionsType } from '../types';
 import Report from '../services/report';
 import pagePerf from './perf';
@@ -20,7 +18,7 @@ class TracePerf {
         () => {
           this.recordPerf(options);
         },
-        false,
+        false
       );
     }
   }

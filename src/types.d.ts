@@ -5,7 +5,7 @@ export interface CustomOptionsType extends CustomReportOptions {
   autoTracePerf?: boolean;
   useFmp?: boolean;
   enableSPA?: boolean;
-  vue?: any;
+  vue?: unknown;
   traceSDKInternal?: boolean;
   detailMode?: boolean;
   noTraceOrigins?: (string | RegExp)[];
